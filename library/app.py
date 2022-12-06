@@ -1,5 +1,5 @@
 from repository.book import BookRep
-import ui.console as ui
+from ui.console import ConsolePrinter
 from service.state import StateManager, States
 
 
@@ -8,10 +8,10 @@ class App:
     def run():
         book_rep = BookRep()
 
-        ui.clear()
+        ConsolePrinter.clear()
 
         state_manager = StateManager(book_rep)
-        state_manager.state_changed.add_listener(ui.draw_ui)
+        state_manager.state_changed.add_listener(ConsolePrinter.draw_ui)
         state_manager.change_state(States.Main)
 
         while state_manager.is_work:

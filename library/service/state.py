@@ -4,7 +4,7 @@ from peewee import DoesNotExist
 
 from model.book import Book
 from repository.book import BookRep
-from ui import console as ui
+from ui.console import ConsolePrinter
 from model.command import Command
 from model.actions import Actions
 from model.event import Event
@@ -47,18 +47,18 @@ class ParameterizedState(State):
         self.__book = Book()
 
     def handle_input(self, state_manager):
-        user_input = ui.get_input()
+        user_input = ConsolePrinter.get_input()
 
         if user_input == Actions.SetTitle.value:
-            value = ui.get_single_input()
+            value = ConsolePrinter.get_single_input()
             self.set_title(value)
             state_manager.change_state(self)
         elif user_input == Actions.SetAuthor.value:
-            value = ui.get_single_input()
+            value = ConsolePrinter.get_single_input()
             self.set_author(value)
             state_manager.change_state(self)
         elif user_input == Actions.SetYear.value:
-            value = ui.get_single_input()
+            value = ConsolePrinter.get_single_input()
             self.set_year(value)
             state_manager.change_state(self)
         elif user_input == Actions.Execute.value:
@@ -71,7 +71,7 @@ class ParameterizedState(State):
             self.clear_book()
             state_manager.change_state(States.Main)
         else:
-            ui.draw_ui('Ошибка ввода. Повторите попытку')
+            ConsolePrinter.draw_ui('Ошибка ввода. Повторите попытку')
             pass
 
     def set_title(self, title: str):
@@ -88,15 +88,15 @@ class ParameterizedState(State):
             self.__book.year = year
             self.__success_update(year)
         except ValueError:
-            ui.draw_ui('Ошибка формата ввода. Введите число.')
+            ConsolePrinter.draw_ui('Ошибка формата ввода. Введите число.')
 
     @staticmethod
     def __success_update(param):
-        ui.draw_ui(f'Параметр %s установлен.' % param)
+        ConsolePrinter.draw_ui(f'Параметр %s установлен.' % param)
 
     def clear_book_with_output(self):
         self.clear_book()
-        ui.draw_ui("Все параметры очищены.")
+        ConsolePrinter.draw_ui("Все параметры очищены.")
 
     def clear_book(self):
         self.__book = Book()
@@ -111,7 +111,7 @@ class ParameterizedState(State):
 
 class MainState(StateWithStats):
     def handle_input(self, state_manager):
-        user_input = ui.get_input()
+        user_input = ConsolePrinter.get_input()
         if user_input == Actions.Exit.value:
             state_manager.change_state(States.Exit)
         elif user_input == Actions.AddBook.value:
@@ -127,7 +127,7 @@ class MainState(StateWithStats):
         elif user_input == Actions.PrintAll.value:
             state_manager.change_state(States.PrintAll)
         else:
-            ui.draw_ui('Ошибка ввода. Введите команду из списка.')
+            ConsolePrinter.draw_ui('Ошибка ввода. Введите команду из списка.')
             pass
 
 
@@ -137,7 +137,7 @@ class AddBookState(ParameterizedState):
 
     def execute(self, state_manager):
         state_manager.book_rep.add(self.get_book())
-        ui.draw_ui(f'Книга ({self.get_book()}) добавлена.')
+        ConsolePrinter.draw_ui(f'Книга ({self.get_book()}) добавлена.')
         self.clear_book()
 
 
@@ -148,64 +148,64 @@ class FindBookState(ParameterizedState):
     def execute(self, state_manager):
         books = state_manager.book_rep.find(self.get_book())
         if books:
-            ui.draw_ui('Результат поиска:')
-            ui.print_books(books)
+            ConsolePrinter.draw_ui('Результат поиска:')
+            ConsolePrinter.print_books(books)
         else:
-            ui.draw_ui('По вашим параметрам книги не найдены. Попробуйте еще раз.')
+            ConsolePrinter.draw_ui('По вашим параметрам книги не найдены. Попробуйте еще раз.')
         self.clear_book()
 
 
 class RemoveBookState(State):
     def handle_input(self, state_manager):
-        user_input = ui.get_input()
+        user_input = ConsolePrinter.get_input()
 
         if user_input == Actions.Back.value:
             state_manager.change_state(States.Main)
         else:
             try:
                 state_manager.book_rep.remove_at(user_input)
-                ui.draw_ui('Книга успешно удалена')
+                ConsolePrinter.draw_ui('Книга успешно удалена')
                 state_manager.change_state(States.Main)
             except ValueError:
-                ui.draw_ui('Ошибка формата ввода. Введите число.')
+                ConsolePrinter.draw_ui('Ошибка формата ввода. Введите число.')
             except DoesNotExist:
-                ui.draw_ui('Не удалось удалить книгу. Книга с данным id не существует.')
+                ConsolePrinter.draw_ui('Не удалось удалить книгу. Книга с данным id не существует.')
 
 
 class EditBookState(ParameterizedState):
     def execute(self, state_manager):
-        book_id = ui.get_parameterized_input("Введите id книги для редактирования:")
+        book_id = ConsolePrinter.get_parameterized_input("Введите id книги для редактирования:")
         try:
             state_manager.book_rep.update_at(int(book_id), self.get_book())
-            ui.draw_ui(f'Книга с id = {book_id} отредактирована.\n'
+            ConsolePrinter.draw_ui(f'Книга с id = {book_id} отредактирована.\n'
                        f'Новое состояние книги = ({state_manager.book_rep.get_at(book_id)})')
             self.clear_book()
         except ValueError:
-            ui.draw_ui('Ошибка формата ввода. Введите число.')
+            ConsolePrinter.draw_ui('Ошибка формата ввода. Введите число.')
         except DoesNotExist:
             book = self.get_book()
-            ui.draw_ui('Не удалось удалить книгу. Книга с id не существует. Попробуйте ввести другой id.\n'
+            ConsolePrinter.draw_ui('Не удалось удалить книгу. Книга с id не существует. Попробуйте ввести другой id.\n'
                        f'Текушие параметры: title = {book.title}, year = {book.year}, author = {book.author}.')
 
 
 class PrintState(State):
     def handle_input(self, state_manager):
-        user_input = ui.get_input()
+        user_input = ConsolePrinter.get_input()
 
         try:
             book = state_manager.book_rep.get_at(int(user_input))
-            if ui.is_pdf():
+            if ConsolePrinter.is_pdf():
                 file_name = type(self).__name__ + '.pdf'
                 PdfPrinter.print_book(file_name, book)
-                ui.draw_ui(f'Результат в файле {file_name}')
+                ConsolePrinter.draw_ui(f'Результат в файле {file_name}')
             else:
-                ui.print_book(book)
+                ConsolePrinter.print_book(book)
         except ValueError:
-            ui.draw_ui('Ошибка формата ввода. Введите число.')
+            ConsolePrinter.draw_ui('Ошибка формата ввода. Введите число.')
         except DoesNotExist:
-            ui.draw_ui('Не удалось отобразить книгу. Книга с данным id не существует.')
+            ConsolePrinter.draw_ui('Не удалось отобразить книгу. Книга с данным id не существует.')
 
-        ui.confirm_input()
+        ConsolePrinter.confirm_input()
         state_manager.change_state(States.Main)
 
 
@@ -213,13 +213,13 @@ class PrintAllState(StateWithStats):
     def handle_input(self, state_manager):
         books = state_manager.book_rep.get_all()
 
-        if ui.is_pdf():
+        if ConsolePrinter.is_pdf():
             file_name = type(self).__name__ + '.pdf'
             PdfPrinter.print_books(file_name, books)
-            ui.draw_ui(f'Результат в файле {file_name}')
+            ConsolePrinter.draw_ui(f'Результат в файле {file_name}')
         else:
-            ui.print_books(books)
-        ui.confirm_input()
+            ConsolePrinter.print_books(books)
+        ConsolePrinter.confirm_input()
         state_manager.change_state(States.Main)
 
 
@@ -244,10 +244,10 @@ class StateManager:
 
     def change_state(self, state: State):
         if state == self.current_state:
-            ui.confirm_input()
+            ConsolePrinter.confirm_input()
         else:
             self.__current_state = state
-        ui.clear()
+        ConsolePrinter.clear()
         string_state = self.__current_state.to_string(self)
         self.state_changed.invoke(string_state)
 

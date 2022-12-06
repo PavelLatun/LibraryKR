@@ -7,7 +7,7 @@ from model.book import Book
 class PdfPrinter:
 
     @staticmethod
-    def print_book(file_name: str, book: Book):
+    def print_book(file_name: str, book):
         book_text = BookFormatter.format_book(book)
         pdf = PdfPrinter.__create_pdf()
         pdf.cell(250, 30, "Your book:", ln=1, align="L")

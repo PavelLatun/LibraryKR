@@ -1,0 +1,149 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+class Command {
+    action: Actions
+    to_string()
+}
+class Event {
+    add_listener(callback)
+    remove_listener(callback)
+    remove_all_listener()
+    invoke(*args)
+}
+enum Actions {
+    Exit
+    AddBook
+    RemoveBook
+    EditBook
+    FindBook
+    PrintAt
+    PrintAll
+    Back
+    Undo
+    SetAuthor
+    SetYear
+    SetTitle
+    ClearParams
+    SetId
+    Execute
+    Return
+}
+
+class BookRep {
+    data_base
+}
+class BookModel {
+    id: int
+    title: str
+    year: int
+    author: str
+}
+class Book {
+    title: str
+    year: int
+    author: str
+}
+
+class StateManager {
+    state_changed: Event
+    book_rep: BookRep
+    is_work: Boolean
+    stop_work()
+    change_state(state: State):
+}
+class States {
+    Main: State
+    AddBook: State
+    FindBook: State
+    RemoveBook: State
+    EditBook: State
+    Print: State
+    PrintAll: State
+    Exit: State
+}
+
+class State {
+    header: str
+    commands: Command[]
+    handle_input(state_manager)
+    to_string(state_manager)
+}
+class StateWithStats
+class ParameterizedState {
+    book: Book
+    set_title(title: str)
+    set_year(year: int)
+    set_author(author: str)
+    clear_book()
+    clear_book_with_output()
+    get_book()
+    abstract execute()
+}
+class MainState
+class AddBookState
+class FindBookState
+class RemoveBookState
+class EditBookState
+class PrintState
+class PrintAllState
+class ExitState
+
+class BookFormatter {
+    format_books(books): str
+    format_book(book): str
+}
+class ConsolePrinter {
+    draw_ui(strings_ui: str)
+    clear()
+    print_books(books)
+    print_book(book)
+    is_pdf()
+    get_input()
+    get_single_input()
+    get_parameterized_input(text: str)
+    confirm_input()
+}
+class PdfPrinter {
+    print_books(file_name: str, books)
+    print_book(file_name: str, book)
+}
+
+Command <-- Actions
+State <-- Command
+State <|-- StateWithStats
+State <|-- ParameterizedState
+State <|-- RemoveBookState
+State <|-- PrintState
+StateWithStats <|-- MainState
+StateWithStats <|-- PrintAllState
+StateWithStats <|-- ExitState
+ParameterizedState <|-- AddBookState
+ParameterizedState <|-- FindBookState
+ParameterizedState <|-- EditBookState
+
+BookRep <-- BookModel
+BookRep <-- Book
+
+States <-- State
+States <-- StateWithStats
+States <-- ParameterizedState
+States <-- MainState
+States <-- AddBookState
+States <-- FindBookState
+States <-- RemoveBookState
+States <-- EditBookState
+States <-- PrintState
+States <-- PrintAllState
+States <-- ExitState
+
+StateManager <-- States
+StateManager <-- BookRep
+StateManager <-- Event
+StateManager <-- ConsolePrinter
+StateManager <-- PdfPrinter
+
+PdfPrinter <-- BookFormatter
+ConsolePrinter <-- BookFormatter
+
+@enduml
